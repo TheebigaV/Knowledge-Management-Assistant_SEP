@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import {  Mail, Lock, ArrowRight, User, Network } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import authService from "../../services/authService";
+import { Mail, Lock, ArrowRight, User, Network } from "lucide-react";
+import toast from "react-hot-toast";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
@@ -10,7 +12,9 @@ const RegisterPage = () => {
   const [loading, setLoading] = useState(false);
   const [focusedField, setFocusedField] = useState(null);
 
-  const handleSubmit = (e) => {
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (password.length < 6) {
@@ -18,14 +22,34 @@ const RegisterPage = () => {
       return;
     }
 
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    // Basic username validation
+    if (username.length < 3) {
+      setError("Username must be at least 3 characters long.");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
-    // Simulate API call for UI demonstration
-    setTimeout(() => {
+    try {
+      await authService.register(username, email, password);
+      toast.success("Registration successful! Please Login.");
+      navigate("/login");
+    } catch (err) {
+      const errorMessage =
+        err.error || err.message || "Failed to register. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
       setLoading(false);
-      // This is just for UI demonstration - no actual API call
-    }, 1500);
+    }
   };
 
   return (
@@ -37,6 +61,7 @@ const RegisterPage = () => {
           {/* Header */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-blue-400 to-indigo-500 shadow-lg shadow-blue-500/25 mb-6">
+              {" "}
               <Network className="w-7 h-7 text-white" strokeWidth={2} />
             </div>
             <h1 className="text-2xl font-medium text-slate-900 tracking-tight mb-2">
@@ -143,8 +168,7 @@ const RegisterPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-blue-500/25 overflow-hidden"
-            >
+className="group relative w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-blue-500/25 overflow-hidden"            >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 {loading ? (
                   <>
