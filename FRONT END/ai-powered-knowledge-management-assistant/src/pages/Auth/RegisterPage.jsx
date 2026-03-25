@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import authService from "../../services/authService";
-import { Mail, Lock, ArrowRight, Network } from "lucide-react";
+import { Mail, Lock, ArrowRight, User, Network } from "lucide-react";
 import toast from "react-hot-toast";
 
-const LoginPage = () => {
+const RegisterPage = () => {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -13,23 +13,38 @@ const LoginPage = () => {
   const [focusedField, setFocusedField] = useState(null);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    // Basic username validation
+    if (username.length < 3) {
+      setError("Username must be at least 3 characters long.");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
     try {
-      const { token, user } = await authService.login(email, password);
-      login(user, token);
-      toast.success("Logged in successfully!");
-      navigate("/dashboard");
+      await authService.register(username, email, password);
+      toast.success("Registration successful! Please Login.");
+      navigate("/login");
     } catch (err) {
       const errorMessage =
-        err.error ||
-        err.message ||
-        "Failed to login. Please check your credentials.";
+        err.error || err.message || "Failed to register. Please try again.";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -50,15 +65,42 @@ const LoginPage = () => {
               <Network className="w-7 h-7 text-white" strokeWidth={2} />
             </div>
             <h1 className="text-2xl font-medium text-slate-900 tracking-tight mb-2">
-              Welcome back
+              Create an account
             </h1>
             <p className="text-slate-500 text-sm">
-              Sign in to continue your journey
+              Start your AI-powered learning experience
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Username Field */}
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
+                Username
+              </label>
+              <div className="relative group">
+                <div
+                  className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${
+                    focusedField === "username"
+                      ? "text-blue-500"
+                      : "text-slate-400"
+                  }`}
+                >
+                  <User className="h-5 w-5" strokeWidth={2} />
+                </div>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  onFocus={() => setFocusedField("username")}
+                  onBlur={() => setFocusedField(null)}
+                  className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-400 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-blue-500 focus:bg-white focus:shadow-lg focus:shadow-blue-500/10"
+                  placeholder="yourusername"
+                />
+              </div>
+            </div>
+
             {/* Email Field */}
             <div className="space-y-2">
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
@@ -113,16 +155,6 @@ const LoginPage = () => {
               </div>
             </div>
 
-            {/* Forgot Password Link */}
-            <div className="text-right">
-              <Link
-                to="/forgot-password"
-                className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors duration-200"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
             {/* Error Message */}
             {error && (
               <div className="rounded-lg bg-red-50 border border-red-200 p-3">
@@ -136,16 +168,16 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
- className="group relative w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-blue-500/25 overflow-hidden"            >
+className="group relative w-full h-12 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 active:scale-[0.98] text-white text-sm font-semibold rounded-xl transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-blue-500/25 overflow-hidden"            >
               <span className="relative z-10 flex items-center justify-center gap-2">
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Signing in...
+                    Creating account...
                   </>
                 ) : (
                   <>
-                    Sign in
+                    Create account
                     <ArrowRight
                       className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-200"
                       strokeWidth={2.5}
@@ -160,12 +192,12 @@ const LoginPage = () => {
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-slate-200/60">
             <p className="text-center text-sm text-slate-600">
-              Don't have an account?{" "}
+              Already have an account?{" "}
               <Link
-                to="/register"
+                to="/login"
                 className="font-semibold text-blue-600 hover:text-blue-700 transition-colors duration-200"
               >
-                Sign up
+                Sign in
               </Link>
             </p>
           </div>
@@ -180,4 +212,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RegisterPage;
