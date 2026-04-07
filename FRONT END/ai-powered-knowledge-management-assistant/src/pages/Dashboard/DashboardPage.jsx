@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -10,10 +10,29 @@ import {
   Network,
   Eye,
 } from "lucide-react";
+import documentService from "../../services/documentService";
 
 const DashboardPage = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [documentCount, setDocumentCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const fetchDocumentCount = async () => {
+    try {
+      const response = await documentService.getDocuments();
+      setDocumentCount(response.data?.length || 0);
+    } catch (error) {
+      console.error('Failed to fetch document count:', error);
+      setDocumentCount(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDocumentCount();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -68,7 +87,13 @@ const DashboardPage = () => {
                 <FileText className="w-6 h-6 text-white" strokeWidth={2} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-slate-900">0</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {loading ? (
+                    <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    documentCount
+                  )}
+                </p>
                 <p className="text-sm text-slate-600">Documents</p>
               </div>
             </div>
