@@ -70,6 +70,18 @@ const deleteQuiz = async (quizId) => {
   }
 };
 
+const getQuizCount = async () => {
+  try {
+    const response = await axiosInstance.get('/api/quizzes/count');
+    console.log('Quiz count fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Fetch quiz count error:', error.response?.data || error.message);
+    // Return 0 if API fails
+    return { count: 0 };
+  }
+};
+
 const quizService = {
   generateQuiz,
   getQuizzesForDocument,
@@ -77,6 +89,7 @@ const quizService = {
   submitQuiz,
   getQuizResults,
   deleteQuiz,
+  getQuizCount,
 };
 
 export default quizService;

@@ -59,12 +59,25 @@ const deleteFlashcardSet = async (setId) => {
   }
 };
 
+const getFlashcardCount = async () => {
+  try {
+    const response = await axiosInstance.get('/api/flashcards/count');
+    console.log('Flashcard count fetched:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Fetch flashcard count error:', error.response?.data || error.message);
+    // Return 0 if API fails
+    return { count: 0 };
+  }
+};
+
 const flashcardService = {
   generateFlashcards,
   getFlashcardsForDocument,
   reviewFlashcard,
   toggleStarFlashcard,
   deleteFlashcardSet,
+  getFlashcardCount,
 };
 
 export default flashcardService;
