@@ -64,6 +64,7 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    console.log('Login attempt:', { email, password: password ? '***' : 'undefined', body: req.body });
 
     // Validate input
     if (!email || !password) {
